@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AegisScan - Passive Security Scanner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e14;
+            --bg-secondary: #12171f;
+            --bg-tertiary: #1a2029;
+            --accent-cyan: #00d4ff;
+            --accent-green: #39ff14;
+            --accent-amber: #ffb700;
+            --accent-red: #ff3366;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --border-color: #30363d;
+            --glow-cyan: rgba(0, 212, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(57, 255, 20, 0.03) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        .scan-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .url-input {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .url-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--glow-cyan);
+        }
+
+        .url-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .scan-btn {
+            background: linear-gradient(135deg, var(--accent-cyan), #00a8cc);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 8px;
+            padding: 1rem 2rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+
+        .scan-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--glow-cyan);
+        }
+
+        .scan-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(255, 51, 102, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            color: var(--accent-red);
+            margin-top: 1rem;
+            display: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .summary-card.high {
+            border-color: var(--accent-red);
+            background: rgba(255, 51, 102, 0.05);
+        }
+
+        .summary-card.medium {
+            border-color: var(--accent-amber);
+            background: rgba(255, 183, 0, 0.05);
+        }
+
+        .summary-card.low {
+            border-color: var(--accent-green);
+            background: rgba(57, 255, 20, 0.05);
+        }
+
+        .summary-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 600;
+        }
+
+        .summary-card.high .summary-count { color: var(--accent-red); }
+        .summary-card.medium .summary-count { color: var(--accent-amber); }
+        .summary-card.low .summary-count { color: var(--accent-green); }
+
+        .summary-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .target-info {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .target-url {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-cyan);
+            font-size: 0.95rem;
+        }
+
+        .scan-time {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .findings-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .findings-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+        }
+
+        .finding {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s;
+        }
+
+        .finding:last-child {
+            border-bottom: none;
+        }
+
+        .finding:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .finding-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .severity-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .severity-badge.high {
+            background: rgba(255, 51, 102, 0.15);
+            color: var(--accent-red);
+        }
+
+        .severity-badge.medium {
+            background: rgba(255, 183, 0, 0.15);
+            color: var(--accent-amber);
+        }
+
+        .severity-badge.low {
+            background: rgba(57, 255, 20, 0.15);
+            color: var(--accent-green);
+        }
+
+        .finding-category {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .finding-title {
+            font-weight: 500;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .finding-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .finding-remediation {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        .remediation-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .remediation-text {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .no-findings {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .no-findings-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+
+            .scan-btn {
+                width: 100%;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">AegisScan</h1>
+            <p class="tagline">Passive Web Security Scanner</p>
+        </header>
+
+        <section class="scan-section">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    class="url-input" 
+                    id="urlInput" 
+                    placeholder="Enter URL to scan (e.g., https://example.com)"
+                    autocomplete="off"
+                >
+                <button class="scan-btn" id="scanBtn" onclick="performScan()">
+                    Scan Target
+                </button>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+        </section>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span>Scanning target...</span>
+        </div>
+
+        <div class="results" id="results">
+            <div class="target-info">
+                <span class="target-url" id="targetUrl"></span>
+                <span class="scan-time" id="scanTime"></span>
+            </div>
+
+            <div class="summary-cards">
+                <div class="summary-card high">
+                    <div class="summary-count" id="highCount">0</div>
+                    <div class="summary-label">High Severity</div>
+                </div>
+                <div class="summary-card medium">
+                    <div class="summary-count" id="mediumCount">0</div>
+                    <div class="summary-label">Medium Severity</div>
+                </div>
+                <div class="summary-card low">
+                    <div class="summary-count" id="lowCount">0</div>
+                    <div class="summary-label">Low Severity</div>
+                </div>
+            </div>
+
+            <div class="findings-section">
+                <div class="findings-header">Findings</div>
+                <div id="findingsList"></div>
+            </div>
+        </div>
+
+        <footer>
+            AegisScan &mdash; Passive security analysis only. No active exploitation.
+        </footer>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('urlInput');
+        const scanBtn = document.getElementById('scanBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Allow Enter key to trigger scan
+        urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performScan();
+            }
+        });
+
+        async function performScan() {
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                showError('Please enter a URL to scan');
+                return;
+            }
+
+            // Reset UI
+            hideError();
+            results.classList.remove('active');
+            loading.classList.add('active');
+            scanBtn.disabled = true;
+
+            try {
+                const response = await fetch('/scan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Scan failed');
+                }
+
+                displayResults(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                loading.classList.remove('active');
+                scanBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            // Update target info
+            document.getElementById('targetUrl').textContent = data.target;
+            document.getElementById('scanTime').textContent = new Date(data.timestamp).toLocaleString();
+
+            // Update summary
+            document.getElementById('highCount').textContent = data.summary.high;
+            document.getElementById('mediumCount').textContent = data.summary.medium;
+            document.getElementById('lowCount').textContent = data.summary.low;
+
+            // Display findings
+            const findingsList = document.getElementById('findingsList');
+            findingsList.innerHTML = '';
+
+            if (data.findings.length === 0) {
+                findingsList.innerHTML = `
+                    <div class="no-findings">
+                        <div class="no-findings-icon">✓</div>
+                        <p>No security issues detected</p>
+                    </div>
+                `;
+            } else {
+                // Sort findings by severity
+                const severityOrder = { 'High': 0, 'Medium': 1, 'Low': 2 };
+                data.findings.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+
+                data.findings.forEach(finding => {
+                    const findingEl = document.createElement('div');
+                    findingEl.className = 'finding';
+                    findingEl.innerHTML = `
+                        <div class="finding-header">
+                            <span class="severity-badge ${finding.severity.toLowerCase()}">${finding.severity}</span>
+                            <span class="finding-category">${finding.category}</span>
+                        </div>
+                        <h3 class="finding-title">${escapeHtml(finding.title)}</h3>
+                        <p class="finding-description">${escapeHtml(finding.description)}</p>
+                        <div class="finding-remediation">
+                            <div class="remediation-label">Remediation</div>
+                            <p class="remediation-text">${escapeHtml(finding.remediation)}</p>
+                        </div>
+                    `;
+                    findingsList.appendChild(findingEl);
+                });
+            }
+
+            results.classList.add('active');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('active');
+        }
+
+        function hideError() {
+            errorMessage.classList.remove('active');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+
