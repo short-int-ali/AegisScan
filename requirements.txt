@@ -1,6 +1,17 @@
-fastapi==0.109.0
-uvicorn==0.27.0
-httpx==0.26.0
-pydantic==2.5.3
-python-multipart==0.0.6
+# AegisScan Backend Dependencies
+# For Railway deployment with FastAPI + Uvicorn
 
+# Web framework
+fastapi==0.109.0
+
+# ASGI server for production
+uvicorn[standard]==0.27.0
+
+# Async HTTP client for scanning
+httpx==0.26.0
+
+# Data validation
+pydantic==2.5.3
+
+# Form data parsing (required by FastAPI)
+python-multipart==0.0.6

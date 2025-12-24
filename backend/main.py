@@ -2,7 +2,7 @@
 
 Main entry point for the passive web vulnerability scanner API.
 
-DEPLOYMENT: This backend is designed to run on Railway with Uvicorn.
+DEPLOYMENT: This backend is designed to run on Render with Uvicorn.
 Frontend is deployed separately on Vercel.
 """
 

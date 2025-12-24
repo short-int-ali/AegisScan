@@ -1,6 +1,5 @@
-# Railway/Heroku Procfile
+# Procfile for Render/Heroku deployment
 # Starts the FastAPI application using Uvicorn
-# $PORT is automatically set by Railway
+# $PORT is automatically set by Render
 
-web: uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
-
+web: uvicorn main:app --host 0.0.0.0 --port $PORT
