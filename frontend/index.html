@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AegisScan - Passive Security Scanner</title>
+    <!-- Load API configuration before main script -->
+    <script src="config.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -364,6 +366,31 @@
             margin-top: 3rem;
         }
 
+        /* API status indicator */
+        .api-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+        }
+
+        .status-dot.connected {
+            background: var(--accent-green);
+        }
+
+        .status-dot.error {
+            background: var(--accent-red);
+        }
+
         @media (max-width: 600px) {
             .input-group {
                 flex-direction: column;
@@ -384,6 +411,10 @@
         <header>
             <h1 class="logo">AegisScan</h1>
             <p class="tagline">Passive Web Security Scanner</p>
+            <div class="api-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking API...</span>
+            </div>
         </header>
 
         <section class="scan-section">
@@ -440,11 +471,33 @@
     </div>
 
     <script>
+        // =============================================================================
+        // API Configuration for Split Deployment (Vercel Frontend + Railway Backend)
+        // =============================================================================
+        // 
+        // For Vercel deployment, set the VITE_API_URL environment variable in Vercel:
+        //   VITE_API_URL=https://your-railway-app.railway.app
+        //
+        // The API_BASE_URL is determined in this order:
+        // 1. Window config (can be set by build process or inline script)
+        // 2. Empty string (same-origin, for local development)
+        //
+        // For Vercel: Create a file `config.js` that sets window.API_BASE_URL
+        // Or use the vercel.json rewrites to inject environment variables
+        // =============================================================================
+        
+        const API_BASE_URL = window.API_BASE_URL || '';
+        
         const urlInput = document.getElementById('urlInput');
         const scanBtn = document.getElementById('scanBtn');
         const loading = document.getElementById('loading');
         const results = document.getElementById('results');
         const errorMessage = document.getElementById('errorMessage');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        // Check API health on load
+        checkApiHealth();
 
         // Allow Enter key to trigger scan
         urlInput.addEventListener('keypress', (e) => {
@@ -452,6 +505,24 @@
                 performScan();
             }
         });
+
+        async function checkApiHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    statusDot.classList.add('connected');
+                    statusDot.classList.remove('error');
+                    statusText.textContent = 'API Connected';
+                } else {
+                    throw new Error('API returned non-OK status');
+                }
+            } catch (error) {
+                statusDot.classList.add('error');
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'API Unavailable';
+                console.error('API health check failed:', error);
+            }
+        }
 
         async function performScan() {
             const url = urlInput.value.trim();
@@ -468,7 +539,7 @@
             scanBtn.disabled = true;
 
             try {
-                const response = await fetch('/scan', {
+                const response = await fetch(`${API_BASE_URL}/scan`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -556,4 +627,3 @@
     </script>
 </body>
 </html>
-

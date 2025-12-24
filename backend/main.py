@@ -1,33 +1,86 @@
 """AegisScan - FastAPI Application
 
-Main entry point for the passive web vulnerability scanner.
+Main entry point for the passive web vulnerability scanner API.
+
+DEPLOYMENT: This backend is designed to run on Railway with Uvicorn.
+Frontend is deployed separately on Vercel.
 """
 
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-import os
 
 from backend.models import ScanRequest, ScanResponse, ErrorResponse
 from backend.scanner import Scanner
 
 
+# =============================================================================
+# CORS Configuration
+# =============================================================================
+# For production, replace "*" with your actual Vercel frontend URL(s)
+# Example: ["https://your-app.vercel.app", "https://your-custom-domain.com"]
+# 
+# You can set ALLOWED_ORIGINS environment variable as comma-separated URLs:
+# ALLOWED_ORIGINS=https://aegisscan.vercel.app,https://aegisscan.com
+# =============================================================================
+def get_allowed_origins() -> list:
+    """Get allowed CORS origins from environment or use permissive default."""
+    origins_env = os.getenv("ALLOWED_ORIGINS", "")
+    if origins_env:
+        return [origin.strip() for origin in origins_env.split(",") if origin.strip()]
+    # Default: allow all origins (restrict in production)
+    return ["*"]
+
+
 # Create FastAPI app
 app = FastAPI(
     title="AegisScan",
-    description="Passive Web Vulnerability Scanner - Read-only, non-intrusive security analysis",
+    description="Passive Web Vulnerability Scanner API - Read-only, non-intrusive security analysis",
     version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
-# Add CORS middleware for frontend
+# Add CORS middleware for frontend requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this
+    allow_origins=get_allowed_origins(),
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
+
+# =============================================================================
+# API Endpoints
+# =============================================================================
+
+@app.get("/")
+async def root():
+    """Root endpoint - API information."""
+    return {
+        "service": "AegisScan API",
+        "version": "1.0.0",
+        "description": "Passive Web Vulnerability Scanner",
+        "endpoints": {
+            "scan": "POST /scan",
+            "health": "GET /health",
+            "docs": "GET /docs",
+        }
+    }
+
+
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint for deployment verification.
+    Used by Railway/other platforms to verify the service is running.
+    """
+    return {
+        "status": "healthy",
+        "service": "AegisScan API",
+        "version": "1.0.0"
+    }
 
 
 @app.post("/scan", response_model=ScanResponse, responses={400: {"model": ErrorResponse}})
@@ -44,6 +97,16 @@ async def scan_url(request: ScanRequest):
 
     **Note**: This scanner is passive only. It does not perform any
     active exploitation, injection, or brute-force attacks.
+    
+    Args:
+        request: ScanRequest containing the target URL
+        
+    Returns:
+        ScanResponse with findings and summary
+        
+    Raises:
+        HTTPException 400: Invalid URL or connection error
+        HTTPException 500: Internal server error
     """
     try:
         result = await Scanner.scan(request.url)
@@ -52,28 +115,3 @@ async def scan_url(request: ScanRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Scan failed: {str(e)}")
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy", "service": "AegisScan"}
-
-
-# Serve frontend
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
-
-
-@app.get("/")
-async def serve_frontend():
-    """Serve the frontend application."""
-    index_path = os.path.join(frontend_path, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"message": "AegisScan API - Use POST /scan to scan a URL"}
-
-
-# Mount static files if frontend exists
-if os.path.exists(frontend_path):
-    app.mount("/static", StaticFiles(directory=frontend_path), name="static")
-
