@@ -1,0 +1,30 @@
+# Render Blueprint - Infrastructure as Code
+# https://render.com/docs/blueprint-spec
+#
+# Deploy with: Connect your GitHub repo to Render and it will auto-detect this file
+# Or use: render blueprint launch
+
+services:
+  - type: web
+    name: aegisscan-api
+    runtime: python
+    region: oregon  # Change to your preferred region
+    plan: free      # Options: free, starter, standard, pro
+    
+    # Build configuration
+    buildCommand: pip install -r requirements.txt
+    
+    # Start command - Render provides $PORT automatically
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    
+    # Health check configuration
+    healthCheckPath: /health
+    
+    # Environment variables (optional - can also be set in Render dashboard)
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      # Set your Vercel frontend URL here for CORS
+      # - key: ALLOWED_ORIGINS
+      #   value: https://your-frontend.vercel.app
+
