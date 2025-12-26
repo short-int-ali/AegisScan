@@ -16,4 +16,4 @@
 
 // Set your Render backend URL here for production
 // Example: window.API_BASE_URL = 'https://aegisscan-api.onrender.com';
-window.API_BASE_URL = '';
+window.API_BASE_URL = 'https://aegisscan.onrender.com';
