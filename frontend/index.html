@@ -8,20 +8,21 @@
     <script src="config.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0e14;
-            --bg-secondary: #12171f;
-            --bg-tertiary: #1a2029;
-            --accent-cyan: #00d4ff;
-            --accent-green: #39ff14;
-            --accent-amber: #ffb700;
-            --accent-red: #ff3366;
-            --text-primary: #e6edf3;
-            --text-secondary: #8b949e;
-            --border-color: #30363d;
-            --glow-cyan: rgba(0, 212, 255, 0.3);
+            --bg-primary: #0c0a09;
+            --bg-secondary: #1c1917;
+            --bg-tertiary: #292524;
+            --accent-amber: #f59e0b;
+            --accent-gold: #fbbf24;
+            --accent-green: #34d399;
+            --accent-coral: #fb7185;
+            --accent-red: #ef4444;
+            --text-primary: #fafaf9;
+            --text-secondary: #a8a29e;
+            --border-color: #44403c;
+            --glow-amber: rgba(245, 158, 11, 0.25);
         }
 
         * {
@@ -31,13 +32,13 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Sora', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
             background-image: 
-                radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(57, 255, 20, 0.03) 0%, transparent 50%);
+                radial-gradient(ellipse at 10% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 100%, rgba(251, 113, 133, 0.05) 0%, transparent 50%);
         }
 
         .container {
@@ -54,11 +55,11 @@
         }
 
         .logo {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
             font-size: 2.5rem;
             font-weight: 600;
             letter-spacing: -1px;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+            background: linear-gradient(135deg, var(--accent-amber), var(--accent-coral));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -90,7 +91,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 1rem 1.25rem;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
             font-size: 0.95rem;
             color: var(--text-primary);
             outline: none;
@@ -98,8 +99,8 @@
         }
 
         .url-input:focus {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 0 3px var(--glow-cyan);
+            border-color: var(--accent-amber);
+            box-shadow: 0 0 0 3px var(--glow-amber);
         }
 
         .url-input::placeholder {
@@ -107,12 +108,12 @@
         }
 
         .scan-btn {
-            background: linear-gradient(135deg, var(--accent-cyan), #00a8cc);
+            background: linear-gradient(135deg, var(--accent-amber), #d97706);
             color: var(--bg-primary);
             border: none;
             border-radius: 8px;
             padding: 1rem 2rem;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Sora', sans-serif;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
@@ -122,7 +123,7 @@
 
         .scan-btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px var(--glow-cyan);
+            box-shadow: 0 8px 20px var(--glow-amber);
         }
 
         .scan-btn:disabled {
@@ -147,7 +148,7 @@
             width: 24px;
             height: 24px;
             border: 3px solid var(--border-color);
-            border-top-color: var(--accent-cyan);
+            border-top-color: var(--accent-amber);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -157,14 +158,14 @@
         }
 
         .error-message {
-            background: rgba(255, 51, 102, 0.1);
+            background: rgba(239, 68, 68, 0.1);
             border: 1px solid var(--accent-red);
             border-radius: 8px;
             padding: 1rem 1.25rem;
             color: var(--accent-red);
             margin-top: 1rem;
             display: none;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
             font-size: 0.9rem;
         }
 
@@ -196,28 +197,28 @@
         }
 
         .summary-card.high {
-            border-color: var(--accent-red);
-            background: rgba(255, 51, 102, 0.05);
+            border-color: var(--accent-coral);
+            background: rgba(251, 113, 133, 0.08);
         }
 
         .summary-card.medium {
-            border-color: var(--accent-amber);
-            background: rgba(255, 183, 0, 0.05);
+            border-color: var(--accent-gold);
+            background: rgba(251, 191, 36, 0.08);
         }
 
         .summary-card.low {
             border-color: var(--accent-green);
-            background: rgba(57, 255, 20, 0.05);
+            background: rgba(52, 211, 153, 0.08);
         }
 
         .summary-count {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Fira Code', monospace;
             font-size: 2.5rem;
             font-weight: 600;
         }
 
-        .summary-card.high .summary-count { color: var(--accent-red); }
-        .summary-card.medium .summary-count { color: var(--accent-amber); }
+        .summary-card.high .summary-count { color: var(--accent-coral); }
+        .summary-card.medium .summary-count { color: var(--accent-gold); }
         .summary-card.low .summary-count { color: var(--accent-green); }
 
         .summary-label {
@@ -240,8 +241,8 @@
         }
 
         .target-url {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--accent-cyan);
+            font-family: 'Fira Code', monospace;
+            color: var(--accent-amber);
             font-size: 0.95rem;
         }
 
@@ -294,17 +295,17 @@
         }
 
         .severity-badge.high {
-            background: rgba(255, 51, 102, 0.15);
-            color: var(--accent-red);
+            background: rgba(251, 113, 133, 0.15);
+            color: var(--accent-coral);
         }
 
         .severity-badge.medium {
-            background: rgba(255, 183, 0, 0.15);
-            color: var(--accent-amber);
+            background: rgba(251, 191, 36, 0.15);
+            color: var(--accent-gold);
         }
 
         .severity-badge.low {
-            background: rgba(57, 255, 20, 0.15);
+            background: rgba(52, 211, 153, 0.15);
             color: var(--accent-green);
         }
 
@@ -329,14 +330,14 @@
             background: var(--bg-primary);
             border-radius: 8px;
             padding: 1rem;
-            border-left: 3px solid var(--accent-cyan);
+            border-left: 3px solid var(--accent-amber);
         }
 
         .remediation-label {
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: var(--accent-cyan);
+            color: var(--accent-amber);
             margin-bottom: 0.5rem;
         }
 
@@ -385,10 +386,11 @@
 
         .status-dot.connected {
             background: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
         }
 
         .status-dot.error {
-            background: var(--accent-red);
+            background: var(--accent-coral);
         }
 
         @media (max-width: 600px) {
