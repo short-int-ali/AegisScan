@@ -314,6 +314,16 @@
             font-size: 0.85rem;
         }
 
+        .owasp-badge {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-amber);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: 'Fira Code', monospace;
+        }
+
         .finding-title {
             font-weight: 500;
             font-size: 1.1rem;
@@ -323,7 +333,30 @@
         .finding-description {
             color: var(--text-secondary);
             line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .finding-impact {
+            background: rgba(251, 113, 133, 0.08);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
             margin-bottom: 1rem;
+            border-left: 3px solid var(--accent-coral);
+        }
+
+        .impact-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent-coral);
+            margin-bottom: 0.35rem;
+            font-weight: 600;
+        }
+
+        .impact-text {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 0.85rem;
         }
 
         .finding-remediation {
@@ -345,6 +378,98 @@
             color: var(--text-secondary);
             line-height: 1.5;
             font-size: 0.9rem;
+        }
+
+        /* Executive Summary Styles */
+        .executive-summary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .exec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .exec-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .risk-score-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .risk-score {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .risk-level {
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .risk-level.critical { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .risk-level.high { background: rgba(251, 113, 133, 0.2); color: var(--accent-coral); }
+        .risk-level.medium { background: rgba(251, 191, 36, 0.2); color: var(--accent-gold); }
+        .risk-level.low { background: rgba(52, 211, 153, 0.2); color: var(--accent-green); }
+        .risk-level.minimal { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
+
+        .risk-score-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .risk-score-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .top-risks {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .top-risks-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .top-risk-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .top-risk-item::before {
+            content: "→";
+            color: var(--accent-amber);
         }
 
         .no-findings {
@@ -446,6 +571,24 @@
                 <span class="scan-time" id="scanTime"></span>
             </div>
 
+            <!-- Executive Summary -->
+            <div class="executive-summary" id="executiveSummary">
+                <div class="exec-header">
+                    <span class="exec-title">Executive Summary</span>
+                    <div class="risk-score-container">
+                        <span class="risk-score" id="riskScore">0</span>
+                        <span class="risk-level" id="riskLevel">Minimal</span>
+                    </div>
+                </div>
+                <div class="risk-score-bar">
+                    <div class="risk-score-fill" id="riskScoreFill" style="width: 0%;"></div>
+                </div>
+                <div class="top-risks">
+                    <div class="top-risks-title">Top Risks</div>
+                    <div id="topRisksList"></div>
+                </div>
+            </div>
+
             <div class="summary-cards">
                 <div class="summary-card high">
                     <div class="summary-count" id="highCount">0</div>
@@ -462,7 +605,7 @@
             </div>
 
             <div class="findings-section">
-                <div class="findings-header">Findings</div>
+                <div class="findings-header">Findings (<span id="totalFindings">0</span>)</div>
                 <div id="findingsList"></div>
             </div>
         </div>
@@ -569,10 +712,16 @@
             document.getElementById('targetUrl').textContent = data.target;
             document.getElementById('scanTime').textContent = new Date(data.timestamp).toLocaleString();
 
-            // Update summary
+            // Update summary counts
             document.getElementById('highCount').textContent = data.summary.high;
             document.getElementById('mediumCount').textContent = data.summary.medium;
             document.getElementById('lowCount').textContent = data.summary.low;
+            document.getElementById('totalFindings').textContent = data.findings.length;
+
+            // Update executive summary
+            if (data.executive_summary) {
+                displayExecutiveSummary(data.executive_summary);
+            }
 
             // Display findings
             const findingsList = document.getElementById('findingsList');
@@ -593,13 +742,29 @@
                 data.findings.forEach(finding => {
                     const findingEl = document.createElement('div');
                     findingEl.className = 'finding';
+                    
+                    // Build OWASP badge if available
+                    const owaspBadge = finding.owasp 
+                        ? `<span class="owasp-badge">${escapeHtml(finding.owasp.id)}: ${escapeHtml(finding.owasp.name)}</span>`
+                        : '';
+                    
+                    // Build impact section if available
+                    const impactSection = finding.impact
+                        ? `<div class="finding-impact">
+                            <div class="impact-label">Impact</div>
+                            <p class="impact-text">${escapeHtml(finding.impact)}</p>
+                           </div>`
+                        : '';
+                    
                     findingEl.innerHTML = `
                         <div class="finding-header">
                             <span class="severity-badge ${finding.severity.toLowerCase()}">${finding.severity}</span>
-                            <span class="finding-category">${finding.category}</span>
+                            <span class="finding-category">${escapeHtml(finding.category)}</span>
+                            ${owaspBadge}
                         </div>
                         <h3 class="finding-title">${escapeHtml(finding.title)}</h3>
                         <p class="finding-description">${escapeHtml(finding.description)}</p>
+                        ${impactSection}
                         <div class="finding-remediation">
                             <div class="remediation-label">Remediation</div>
                             <p class="remediation-text">${escapeHtml(finding.remediation)}</p>
@@ -610,6 +775,50 @@
             }
 
             results.classList.add('active');
+        }
+
+        function displayExecutiveSummary(execSummary) {
+            // Update risk score
+            const riskScore = execSummary.risk_score || 0;
+            document.getElementById('riskScore').textContent = riskScore;
+            
+            // Update risk level badge
+            const riskLevel = execSummary.risk_level || 'Minimal';
+            const riskLevelEl = document.getElementById('riskLevel');
+            riskLevelEl.textContent = riskLevel;
+            riskLevelEl.className = 'risk-level ' + riskLevel.toLowerCase();
+            
+            // Update risk score bar
+            const riskScoreFill = document.getElementById('riskScoreFill');
+            riskScoreFill.style.width = riskScore + '%';
+            
+            // Set bar color based on risk level
+            const barColors = {
+                'critical': 'linear-gradient(90deg, #ef4444, #dc2626)',
+                'high': 'linear-gradient(90deg, #fb7185, #f43f5e)',
+                'medium': 'linear-gradient(90deg, #fbbf24, #f59e0b)',
+                'low': 'linear-gradient(90deg, #34d399, #10b981)',
+                'minimal': 'linear-gradient(90deg, #34d399, #10b981)'
+            };
+            riskScoreFill.style.background = barColors[riskLevel.toLowerCase()] || barColors['minimal'];
+            
+            // Update top risks
+            const topRisksList = document.getElementById('topRisksList');
+            topRisksList.innerHTML = '';
+            
+            if (execSummary.top_risks && execSummary.top_risks.length > 0) {
+                execSummary.top_risks.forEach(risk => {
+                    const riskItem = document.createElement('div');
+                    riskItem.className = 'top-risk-item';
+                    riskItem.textContent = risk;
+                    topRisksList.appendChild(riskItem);
+                });
+            } else {
+                const noRisks = document.createElement('div');
+                noRisks.className = 'top-risk-item';
+                noRisks.textContent = 'No significant risks identified';
+                topRisksList.appendChild(noRisks);
+            }
         }
 
         function showError(message) {
