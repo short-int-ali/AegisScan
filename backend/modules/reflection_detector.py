@@ -9,7 +9,7 @@ from typing import List
 from urllib.parse import urlencode, urlparse, parse_qs, urljoin
 import httpx
 
-from backend.models import Finding, Severity
+from models import Finding, Severity
 
 
 class ReflectionDetector:

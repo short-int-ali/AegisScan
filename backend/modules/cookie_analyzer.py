@@ -7,7 +7,7 @@ from typing import List, Dict
 from http.cookies import SimpleCookie
 import httpx
 
-from backend.models import Finding, Severity
+from models import Finding, Severity
 
 
 class CookieAnalyzer:

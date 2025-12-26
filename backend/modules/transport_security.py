@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from backend.models import Finding, Severity
+from models import Finding, Severity
 
 
 class TransportSecurityAnalyzer:

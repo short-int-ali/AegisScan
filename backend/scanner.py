@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 from typing import List
 import httpx
 
-from backend.models import Finding, ScanSummary, ScanResponse, Severity
-from backend.modules import (
+from models import Finding, ScanSummary, ScanResponse, Severity
+from modules import (
     URLNormalizer,
     TransportSecurityAnalyzer,
     SecurityHeaderAnalyzer,

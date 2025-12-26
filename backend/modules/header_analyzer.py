@@ -6,7 +6,7 @@ Checks for presence and configuration of security-related HTTP headers.
 from typing import List, Dict, Optional
 import httpx
 
-from backend.models import Finding, Severity
+from models import Finding, Severity
 
 
 class SecurityHeaderAnalyzer:
