@@ -9,7 +9,7 @@ from typing import List
 from urllib.parse import urlencode, urlparse, parse_qs, urljoin
 import httpx
 
-from models import Finding, Severity
+from models import Finding, Severity, OWASP
 
 
 class ReflectionDetector:
@@ -66,7 +66,9 @@ class ReflectionDetector:
                         category="Input Handling",
                         title=f"Input Reflection Detected in Parameter '{param_name}'",
                         severity=Severity.LOW,
+                        owasp=OWASP.A03_INJECTION,
                         description=f"The parameter '{param_name}' appears to be reflected in the response. While this test uses benign markers, reflected input could potentially be exploited if proper output encoding is not implemented.",
+                        impact="If output encoding is insufficient, attackers could inject malicious scripts (XSS) that execute in users' browsers, potentially stealing credentials or performing actions on their behalf.",
                         remediation="Ensure all user input is properly encoded before being included in HTML responses. Implement Content-Security-Policy headers to mitigate potential XSS risks."
                     ))
             except Exception:
@@ -88,7 +90,9 @@ class ReflectionDetector:
                             category="Input Handling",
                             title=f"Input Reflection Detected in Parameter '{param_name}'",
                             severity=Severity.LOW,
+                            owasp=OWASP.A03_INJECTION,
                             description=f"The parameter '{param_name}' appears to be reflected in the response. While this test uses benign markers, reflected input could potentially be exploited if proper output encoding is not implemented.",
+                            impact="If output encoding is insufficient, attackers could inject malicious scripts (XSS) that execute in users' browsers, potentially stealing credentials or performing actions on their behalf.",
                             remediation="Ensure all user input is properly encoded before being included in HTML responses. Implement Content-Security-Policy headers to mitigate potential XSS risks."
                         ))
                         # Only report first reflection found in test params

@@ -4,11 +4,11 @@ Checks for commonly exposed files and paths.
 Only checks predefined endpoints - no fuzzing or crawling.
 """
 
-from typing import List
+from typing import List, Optional
 from urllib.parse import urljoin
 import httpx
 
-from models import Finding, Severity
+from models import Finding, Severity, OWASP
 
 
 class ExposureChecker:
@@ -70,7 +70,7 @@ class ExposureChecker:
     @classmethod
     async def _check_path(
         cls, base_url: str, path_config: dict, client: httpx.AsyncClient
-    ) -> Finding | None:
+    ) -> Optional[Finding]:
         """Check a single path for accessibility."""
         full_url = urljoin(base_url, path_config["path"])
 
@@ -85,7 +85,9 @@ class ExposureChecker:
                         category="Public Exposure",
                         title=f"{path_config['name']} Exposed",
                         severity=path_config["severity"],
+                        owasp=OWASP.A05_SECURITY_MISCONFIG,
                         description=f"{path_config['description']}. URL: {full_url} returned status {status_code}.",
+                        impact=cls._get_impact(path_config["path"]),
                         remediation=cls._get_remediation(path_config["path"])
                     )
                 else:
@@ -94,7 +96,9 @@ class ExposureChecker:
                         category="Public Exposure",
                         title=f"{path_config['name']} Found",
                         severity=Severity.LOW,
+                        owasp=OWASP.A05_SECURITY_MISCONFIG,
                         description=f"{path_config['description']}. This is typically expected but may reveal information about site structure.",
+                        impact="This file may reveal hidden paths, admin panels, or site structure that could aid attackers in reconnaissance.",
                         remediation="Review the contents to ensure no sensitive paths or information are exposed."
                     )
 
@@ -104,7 +108,9 @@ class ExposureChecker:
                     category="Public Exposure",
                     title="Admin Panel Detected",
                     severity=Severity.LOW,
+                    owasp=OWASP.A05_SECURITY_MISCONFIG,
                     description=f"An admin panel appears to exist at {full_url} (returned {status_code}). While access is restricted, the presence of an admin panel is now known.",
+                    impact="Attackers now know the admin panel location and can focus brute-force or exploitation attempts on this endpoint.",
                     remediation="Consider hiding admin panels behind non-obvious URLs or implementing IP-based access controls."
                 )
 
@@ -127,4 +133,15 @@ class ExposureChecker:
             "/sitemap.xml": "Review sitemap.xml to ensure no sensitive URLs are exposed.",
         }
         return remediations.get(path, "Restrict access to this resource or remove it if not needed.")
+
+    @classmethod
+    def _get_impact(cls, path: str) -> str:
+        """Get specific impact description for a path."""
+        impacts = {
+            "/admin": "Attackers can target the admin panel with brute-force attacks, credential stuffing, or exploit known vulnerabilities in admin interfaces.",
+            "/.env": "Environment files often contain database credentials, API keys, and other secrets. Exposure could lead to complete system compromise.",
+            "/robots.txt": "May reveal hidden paths or admin panels that attackers can target.",
+            "/sitemap.xml": "May expose URLs that were not intended to be publicly indexed.",
+        }
+        return impacts.get(path, "Exposed resources may provide attackers with information or access to sensitive functionality.")
 

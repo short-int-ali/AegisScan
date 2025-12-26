@@ -7,7 +7,7 @@ from typing import List, Dict
 from http.cookies import SimpleCookie
 import httpx
 
-from models import Finding, Severity
+from models import Finding, Severity, OWASP
 
 
 class CookieAnalyzer:
@@ -67,7 +67,9 @@ class CookieAnalyzer:
                 category="Cookie Security",
                 title=f"Cookie '{cookie_name}' Missing Secure Flag",
                 severity=Severity.MEDIUM,
+                owasp=OWASP.A07_AUTH_FAILURES,
                 description=f"The cookie '{cookie_name}' does not have the Secure flag set. This means the cookie can be transmitted over unencrypted HTTP connections.",
+                impact="If users access the site over HTTP, the cookie (potentially containing session tokens) can be intercepted by network attackers.",
                 remediation="Add the Secure flag to the cookie to ensure it is only sent over HTTPS connections."
             ))
 
@@ -77,7 +79,9 @@ class CookieAnalyzer:
                 category="Cookie Security",
                 title=f"Cookie '{cookie_name}' Missing HttpOnly Flag",
                 severity=Severity.MEDIUM,
+                owasp=OWASP.A07_AUTH_FAILURES,
                 description=f"The cookie '{cookie_name}' does not have the HttpOnly flag set. This means the cookie can be accessed by client-side JavaScript, making it vulnerable to XSS attacks.",
+                impact="If an XSS vulnerability exists, attackers can steal this cookie using JavaScript and potentially hijack user sessions.",
                 remediation="Add the HttpOnly flag to the cookie to prevent client-side script access."
             ))
 
@@ -88,7 +92,9 @@ class CookieAnalyzer:
                 category="Cookie Security",
                 title=f"Cookie '{cookie_name}' Missing SameSite Attribute",
                 severity=Severity.MEDIUM,
+                owasp=OWASP.A07_AUTH_FAILURES,
                 description=f"The cookie '{cookie_name}' does not have the SameSite attribute set. This could make the application vulnerable to CSRF attacks.",
+                impact="Without SameSite, the cookie is sent with cross-site requests, potentially allowing attackers to perform actions on behalf of authenticated users.",
                 remediation="Add the SameSite attribute with 'Strict' or 'Lax' value to prevent cross-site request forgery."
             ))
         elif samesite.lower() == "none":
@@ -98,7 +104,9 @@ class CookieAnalyzer:
                     category="Cookie Security",
                     title=f"Cookie '{cookie_name}' Has Insecure SameSite Configuration",
                     severity=Severity.MEDIUM,
+                    owasp=OWASP.A07_AUTH_FAILURES,
                     description=f"The cookie '{cookie_name}' has SameSite=None but is missing the Secure flag. Modern browsers will reject this cookie.",
+                    impact="The cookie may not function as expected in modern browsers, potentially breaking authentication or session management.",
                     remediation="Either add the Secure flag when using SameSite=None, or change SameSite to 'Strict' or 'Lax'."
                 ))
 
