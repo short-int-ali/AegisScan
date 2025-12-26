@@ -10,8 +10,8 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.models import ScanRequest, ScanResponse, ErrorResponse
-from backend.scanner import Scanner
+from models import ScanRequest, ScanResponse, ErrorResponse
+from scanner import Scanner
 
 
 # =============================================================================
